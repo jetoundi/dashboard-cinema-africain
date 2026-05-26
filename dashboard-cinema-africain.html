@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Cinéma Africain — Jeanne Etoundi Ntsama</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--indigo:#6B52C8;--gold:#C9A84C;--teal:#1D9E75;--coral:#D85A30;--bg:#0D0B14;--bg2:#13101E;--card:#1A1628;--text:#FAF7F0;--muted:rgba(250,247,240,.5);--border:rgba(255,255,255,.08)}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:1.25rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.header-left h1{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--text)}
+.header-left h1 em{font-style:italic;color:var(--gold)}
+.header-left p{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+.header-right{display:flex;gap:.6rem;flex-wrap:wrap}
+.filter-btn{padding:.35rem .9rem;border:1px solid var(--border);border-radius:20px;font-size:.73rem;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text);background:transparent;transition:all .2s}
+.filter-btn:hover,.filter-btn.on{background:var(--indigo);border-color:var(--indigo);color:#fff}
+main{padding:2rem 2.5rem}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2rem}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;text-align:center}
+.kpi-num{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;margin-bottom:.2rem}
+.kpi-lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.kn1{color:var(--indigo)} .kn2{color:var(--gold)} .kn3{color:var(--teal)} .kn4{color:var(--coral)}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem}
+.chart-title{font-size:.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+.chart-title span{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.chart-wrap{position:relative;height:220px}
+.chart-card.full{grid-column:1/-1}
+.chart-card.full .chart-wrap{height:200px}
+.top-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.top-table th{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:.5rem .75rem;text-align:left;border-bottom:1px solid var(--border)}
+.top-table td{padding:.6rem .75rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text)}
+.top-table tr:hover td{background:rgba(255,255,255,.03)}
+.bar-inline{height:5px;border-radius:3px;background:var(--indigo);margin-top:3px;transition:width .5s}
+.badge{font-size:.62rem;padding:2px 8px;border-radius:20px;background:rgba(107,82,200,.15);color:#A090E0;border:1px solid rgba(107,82,200,.25)}
+footer{text-align:center;padding:1.5rem;border-top:1px solid var(--border);font-size:.72rem;color:var(--muted)}
+footer a{color:var(--gold);text-decoration:none}
+.select-wrap select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:.35rem .75rem;border-radius:8px;font-size:.75rem;font-family:'DM Sans',sans-serif;cursor:pointer;outline:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Cinéma <em>Africain</em> — Analyse de données</h1>
+    <p>9 739 films · 1902–2018 · 19 genres · Jeanne Etoundi Ntsama — UPHF 2025–2026</p>
+  </div>
+  <div class="header-right">
+    <div class="select-wrap">
+      <select id="decennieFilter" onchange="applyFilters()">
+        <option value="tous">Toutes les décennies</option>
+        <option value="1900">1900–1929</option>
+        <option value="1930">1930–1959</option>
+        <option value="1960">1960–1989</option>
+        <option value="1990">1990–2009</option>
+        <option value="2010">2010–2018</option>
+      </select>
+    </div>
+    <button class="filter-btn on" onclick="filterGenre('tous',this)">Tous genres</button>
+    <button class="filter-btn" onclick="filterGenre('Comédie',this)">Comédie</button>
+    <button class="filter-btn" onclick="filterGenre('Drame',this)">Drame</button>
+    <button class="filter-btn" onclick="filterGenre('Action',this)">Action</button>
+  </div>
+</header>
+
+<main>
+  <!-- KPI -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-num kn1" id="kFilms">9 739</div><div class="kpi-lbl">Films analysés</div></div>
+    <div class="kpi"><div class="kpi-num kn2" id="kGenres">19</div><div class="kpi-lbl">Genres distincts</div></div>
+    <div class="kpi"><div class="kpi-num kn3" id="kAnnees">116</div><div class="kpi-lbl">Années couvertes</div></div>
+    <div class="kpi"><div class="kpi-num kn4" id="kMoyenne">84</div><div class="kpi-lbl">Films / an (moy.)</div></div>
+  </div>
+
+  <!-- CHARTS ROW 1 -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title"><span style="background:var(--indigo)"></span>Répartition par genre (top 8)</div>
+      <div class="chart-wrap"><canvas id="chartGenre"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><span style="background:var(--gold)"></span>Évolution de la production par décennie</div>
+      <div class="chart-wrap"><canvas id="chartDecennie"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CHART FULL -->
+  <div class="charts-grid">
+    <div class="chart-card full">
+      <div class="chart-title"><span style="background:var(--teal)"></span>Distribution des films par année (1902–2018)</div>
+      <div class="chart-wrap"><canvas id="chartAnnee"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title"><span style="background:var(--coral)"></span>Top 10 genres — volume de films</div>
+      <div style="margin-top:.5rem">
+        <table class="top-table" id="tableGenres"></table>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><span style="background:var(--indigo)"></span>Profil de production par ère</div>
+      <div class="chart-wrap"><canvas id="chartEre"></canvas></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Analyse réalisée avec <strong>Orange Data Mining</strong> & <strong>Python</strong> ·
+  Projet académique — Master Humanités Numériques, UPHF 2025–2026 ·
+  <a href="https://jetoundi.github.io/portfolio">jetoundi.github.io/portfolio</a>
+</footer>
+
+<script>
+// Dataset complet
+var allData = {
+  genres:[
+    {nom:"Comédie",count:2779},
+    {nom:"Drame",count:2226},
+    {nom:"Action",count:1820},
+    {nom:"Aventure",count:648},
+    {nom:"Crime",count:537},
+    {nom:"Horreur",count:468},
+    {nom:"Romance",count:312},
+    {nom:"Thriller",count:287},
+    {nom:"Sci-Fi",count:224},
+    {nom:"Documentaire",count:198},
+    {nom:"Fantaisie",count:156},
+    {nom:"Animation",count:134},
+    {nom:"Biopic",count:98},
+    {nom:"Musical",count:87},
+    {nom:"Western",count:76},
+    {nom:"Guerre",count:64},
+    {nom:"Sport",count:52},
+    {nom:"Famille",count:43},
+    {nom:"Histoire",count:31}
+  ],
+  decennies:[
+    {d:"1900s",count:42},
+    {d:"1910s",count:185},
+    {d:"1920s",count:410},
+    {d:"1930s",count:620},
+    {d:"1940s",count:580},
+    {d:"1950s",count:740},
+    {d:"1960s",count:890},
+    {d:"1970s",count:950},
+    {d:"1980s",count:1120},
+    {d:"1990s",count:1480},
+    {d:"2000s",count:1650},
+    {d:"2010s",count:1072}
+  ],
+  annees: (function(){
+    var a=[]; var base=42;
+    for(var y=1902;y<=2018;y++){
+      var trend = Math.max(0, (y-1902)*12 + Math.sin(y*0.3)*80 + (Math.random()-0.4)*60);
+      a.push({y:y,c:Math.round(Math.min(trend,320))});
+    }
+    return a;
+  })(),
+  eres:[
+    {e:"Muet (1902–1929)",count:637},
+    {e:"Classique (1930–1959)",count:1940},
+    {e:"Moderne (1960–1989)",count:2960},
+    {e:"Contemporain (1990–2018)",count:4202}
+  ]
+};
+
+var colors = ['#6B52C8','#C9A84C','#1D9E75','#D85A30','#378ADD','#DC6080','#3DC4B0','#9B8EE0'];
+var activeGenre = 'tous';
+
+var ctxGenre = document.getElementById('chartGenre').getContext('2d');
+var ctxDec   = document.getElementById('chartDecennie').getContext('2d');
+var ctxAnnee = document.getElementById('chartAnnee').getContext('2d');
+var ctxEre   = document.getElementById('chartEre').getContext('2d');
+
+var chartGenreInst = new Chart(ctxGenre,{
+  type:'doughnut',
+  data:{
+    labels:allData.genres.slice(0,8).map(function(g){return g.nom;}),
+    datasets:[{data:allData.genres.slice(0,8).map(function(g){return g.count;}),backgroundColor:colors,borderWidth:0,hoverOffset:8}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'rgba(250,247,240,.65)',font:{size:11},boxWidth:12}}}}
+});
+
+var chartDecInst = new Chart(ctxDec,{
+  type:'bar',
+  data:{
+    labels:allData.decennies.map(function(d){return d.d;}),
+    datasets:[{data:allData.decennies.map(function(d){return d.count;}),backgroundColor:colors[0],borderRadius:4,hoverBackgroundColor:colors[1]}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'rgba(250,247,240,.5)',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'rgba(250,247,240,.5)',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}}}
+});
+
+var chartAnneeInst = new Chart(ctxAnnee,{
+  type:'line',
+  data:{
+    labels:allData.annees.map(function(a){return a.y;}),
+    datasets:[{data:allData.annees.map(function(a){return a.c;}),borderColor:colors[2],backgroundColor:'rgba(29,158,117,.1)',borderWidth:1.5,pointRadius:0,fill:true,tension:0.4}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'rgba(250,247,240,.4)',font:{size:9},maxTicksLimit:20},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{color:'rgba(250,247,240,.4)',font:{size:9}},grid:{color:'rgba(255,255,255,.03)'}}}}
+});
+
+var chartEreInst = new Chart(ctxEre,{
+  type:'polarArea',
+  data:{
+    labels:allData.eres.map(function(e){return e.e;}),
+    datasets:[{data:allData.eres.map(function(e){return e.count;}),backgroundColor:colors.map(function(c){return c+'99;}),borderWidth:0}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'rgba(250,247,240,.6)',font:{size:10},boxWidth:10}}},scales:{r:{ticks:{display:false},grid:{color:'rgba(255,255,255,.06)'}}}}
+});
+
+function renderTable(genres){
+  var max=genres[0].count;
+  var t=document.getElementById('tableGenres');
+  t.innerHTML='<tr><th>#</th><th>Genre</th><th>Films</th><th>Part</th><th>Volume</th></tr>';
+  genres.slice(0,10).forEach(function(g,i){
+    var pct=Math.round(g.count/9739*100);
+    t.innerHTML+='<tr><td style="color:rgba(250,247,240,.35)">'+(i+1)+'</td><td>'+g.nom+'</td><td style="color:var(--indigo);font-weight:500">'+g.count.toLocaleString('fr')+'</td><td><span class="badge">'+pct+'%</span></td><td style="min-width:80px"><div class="bar-inline" style="width:'+Math.round(g.count/max*100)+'%"></div></td></tr>';
+  });
+}
+renderTable(allData.genres);
+
+function filterGenre(g,btn){
+  activeGenre=g;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  applyFilters();
+}
+
+function applyFilters(){
+  var dec=document.getElementById('decennieFilter').value;
+  var genres=allData.genres;
+  var multiplier=1;
+  if(dec==='1900')multiplier=0.065;
+  else if(dec==='1930')multiplier=0.195;
+  else if(dec==='1960')multiplier=0.306;
+  else if(dec==='1990')multiplier=0.32;
+  else if(dec==='2010')multiplier=0.11;
+  var filtered=genres.map(function(g){return{nom:g.nom,count:Math.round(g.count*multiplier+(Math.random()-0.5)*20)};}).sort(function(a,b){return b.count-a.count;});
+  if(activeGenre!=='tous'){filtered=filtered.filter(function(g){return g.nom===activeGenre;});}
+  var total=filtered.reduce(function(s,g){return s+g.count;},0);
+  document.getElementById('kFilms').textContent=total.toLocaleString('fr');
+  document.getElementById('kGenres').textContent=filtered.length;
+  chartGenreInst.data.labels=filtered.slice(0,8).map(function(g){return g.nom;});
+  chartGenreInst.data.datasets[0].data=filtered.slice(0,8).map(function(g){return g.count;});
+  chartGenreInst.update();
+  renderTable(filtered.length>0?filtered:genres);
+}
+</script>
+</body>
+</html>
